@@ -1,0 +1,87 @@
+---
+description: >-
+  Git workflow and commit message conventions for this repo. Apply when the user
+  mentions git, commits, branches, push, pull, rebase, amend, merge, cherry-pick,
+  stash, force-push, history rewrite, or pull requests.
+alwaysApply: false
+---
+
+# Git Conventions
+
+## Agent permissions
+
+- Do **not** run `git commit`, `git add` (for committing), `git push`, `git pull`, force-push, or history-rewriting commands unless the user **explicitly** asks.
+- Read-only commands are fine when helpful: `git status`, `git diff`, `git log`, `git show`, `git branch`.
+- Never change git config (`git config`, global/local).
+- Avoid interactive git flags (`-i`, e.g. `git rebase -i`, `git add -i`); use non-interactive alternatives when automation is needed.
+
+## When the user asks to commit
+
+1. Run `git status`, `git diff`, and `git log` (read-only) to understand the change set and recent message style.
+2. Propose a commit message that follows the conventions below.
+3. Give the **exact commands** for the user to run locally; do not execute the commit unless they asked you to.
+4. Pass multi-line messages with a HEREDOC, for example:
+
+```bash
+git add <paths>
+git commit -m "$(cat <<'EOF'
+feat(spec-004): add example feature
+
+EOF
+)"
+```
+
+5. Do not commit files that likely contain secrets (`.env`, credentials, keys).
+
+## Commit message format
+
+**Default:** one line, imperative mood, no trailing period.
+
+### Spec work
+
+Use the conventional prefix tied to the spec id:
+
+```
+feat(spec-NNN): <what was added or changed>
+```
+
+Examples from this repo:
+
+- `feat(spec-001): implement minimal in-memory todo domain with unit tests`
+- `feat(spec-002): add local Flask/Jinja2 web interface for todo list`
+- `feat(spec-003): add SQLite persistence for todos`
+
+- `NNN` is the three-digit spec number (e.g. `003` for SPEC-003).
+- Use lowercase after the colon; keep the summary short (under ~72 characters when possible).
+- Prefer **add** / **implement** for new capability; avoid long subjects that repeat the spec title.
+
+### Other changes
+
+Use a clear imperative subject without the `feat(spec-*)` prefix:
+
+- `Update agent behavior with Git rules`
+- `Add agent_behavior and testing_standards cursor rules`
+
+Short chore-style subjects are acceptable for tooling-only edits (e.g. `venv update`).
+
+### What to avoid
+
+- Multi-sentence subjects or pasted spec titles as the whole message.
+- Bodies that only restate the subject unless the user wants a PR-style description.
+- Committing on the user's behalf without an explicit request.
+
+## Spec docs and commits
+
+When a spec is fully implemented in a change, update that spec in the **same commit**:
+
+- Set `## Status` to `Implemented`.
+- Add a dated line under `## Change Log` describing what landed.
+
+Prefer folding spec status updates into the commit that introduced the feature (via amend or the implementing commit), not a follow-up docs-only commit, unless the user asks otherwise.
+
+## Amend, rebase, and push
+
+- Use `git commit --amend` only when the user explicitly requests it, or when a hook auto-modified files after a commit they asked you to make.
+- Do not amend commits that are already on the remote unless the user explicitly requests it (rewriting pushed history needs their force-push).
+- After local history rewrites, tell the user they need `git push --force-with-lease` if the branch was published; do not force-push unless they ask.
+- Prefer `--force-with-lease` over `--force` when updating a remote after rebase/amend.
