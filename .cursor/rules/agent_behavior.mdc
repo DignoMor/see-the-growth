@@ -26,3 +26,10 @@ alwaysApply: true
 - Use a project-local virtual environment at `.venv` for development commands.
 - Install dependencies with `.venv/bin/python -m pip install -r requirements.txt`.
 - Run tests with `.venv/bin/python -m unittest ...` to avoid global environment drift.
+
+# Git
+
+- Do not run `git commit`, `git add` for the purpose of committing, or any other command that creates or amends commits on the user's behalf.
+- Do not push, force-push, or rewrite history unless the user explicitly asks and performs those steps themselves.
+- Read-only git commands are allowed when helpful (`git status`, `git diff`, `git log`).
+- When the user wants to commit, provide a suggested commit message and the exact commands for them to run locally; do not execute the commit.
