@@ -5,6 +5,7 @@ from __future__ import annotations
 import sqlite3
 import sys
 import tempfile
+import threading
 import unittest
 from pathlib import Path
 from uuid import UUID
@@ -179,6 +180,27 @@ class TestSpec003SqliteTodoRepository(unittest.TestCase):
         updated = self.repository.mark_completed("a8f4f8ab-b6e4-4f4d-8f5a-5ed206f8b0d5")
 
         self.assertFalse(updated)
+
+    def test_spec_003_repository_list_todos_works_from_other_thread(self) -> None:
+        """Regression: Flask serves requests on worker threads (SPEC-003)."""
+        todo = TodoItem(id="33333333-3333-4333-8333-333333333333", title="cross-thread")
+        self.repository.add_todo(todo)
+
+        errors: list[BaseException] = []
+        todos: list[TodoItem] = []
+
+        def list_from_worker_thread() -> None:
+            try:
+                todos.extend(self.repository.list_todos())
+            except BaseException as exc:
+                errors.append(exc)
+
+        worker = threading.Thread(target=list_from_worker_thread)
+        worker.start()
+        worker.join()
+
+        self.assertEqual(errors, [])
+        self.assertEqual([item.id for item in todos], [todo.id])
 
 
 if __name__ == "__main__":

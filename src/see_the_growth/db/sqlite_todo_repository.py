@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sqlite3
+import threading
 from datetime import datetime, timezone
 
 from see_the_growth.domain.todo_list import TodoItem
@@ -14,7 +15,15 @@ class SqliteTodoRepository:
     def __init__(self, db_path: str) -> None:
         bootstrap_database(db_path)
         self._db_path = db_path
-        self._connection = sqlite3.connect(db_path)
+        self._local = threading.local()
+
+    @property
+    def _connection(self) -> sqlite3.Connection:
+        connection = getattr(self._local, "connection", None)
+        if connection is None:
+            connection = sqlite3.connect(self._db_path)
+            self._local.connection = connection
+        return connection
 
     def add_todo(self, todo: TodoItem) -> None:
         created_at = datetime.now(timezone.utc).isoformat()

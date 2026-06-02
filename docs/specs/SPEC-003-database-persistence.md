@@ -134,6 +134,7 @@ Behavior:
 - `test_spec_003_complete_todo_is_idempotent_in_database`
 - `test_spec_003_todos_survive_service_reinstantiation` (new connection/service instance, same DB file)
 - `test_spec_003_bootstrap_is_idempotent`
+- `test_spec_003_repository_list_todos_works_from_other_thread` (thread-safe access for multi-threaded HTTP servers)
 - `test_spec_003_spec_001_domain_rules_still_hold_with_sqlite_backend` (regression guard; may reuse/adapt existing SPEC-001 cases against SQLite)
 
 ### `tests/api/`
@@ -148,7 +149,7 @@ Existing `SPEC-001` and `SPEC-002` tests must continue to pass after implementat
 ## Implementation Notes (non-normative)
 - Refactor current `TodoList` so domain validation is separate from storage; the public methods (`create_todo`, `list_todos`, `complete_todo`) can remain on `TodoService` for minimal API churn.
 - Keep an in-memory repository implementation only if useful for focused domain tests; runtime and integration paths should use SQLite.
-- Use a single connection per repository instance for v1; connection lifecycle is owned by the repository or a small `Database` helper in `db/`.
+- Use a thread-local connection per repository instance for v1 so Flask's multi-threaded dev server can share one repository across request threads; connection lifecycle is owned by the repository or a small `Database` helper in `db/`.
 
 ## Decisions
 - **Database engine**: SQLite for v1.
@@ -160,3 +161,4 @@ Existing `SPEC-001` and `SPEC-002` tests must continue to pass after implementat
 ## Change Log
 - 2026-06-02: Initial draft created.
 - 2026-06-02: Implemented SQLite persistence, repository/service layering, and web app wiring.
+- 2026-06-02: Repository uses thread-local SQLite connections for multi-threaded Flask runtime.
