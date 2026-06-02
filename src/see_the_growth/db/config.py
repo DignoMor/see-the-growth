@@ -1,4 +1,10 @@
-"""Database path configuration (SPEC-003)."""
+"""Database path configuration (SPEC-003).
+
+Default: ``data/todos.db`` relative to the process working directory.
+Docker (SPEC-004): ``WORKDIR`` ``/app`` and bind mount ``./data:/app/data``
+→ host ``<repo>/data/todos.db``, container ``/app/data/todos.db``.
+Override: environment variable ``SEE_THE_GROWTH_DB_PATH``.
+"""
 
 from __future__ import annotations
 

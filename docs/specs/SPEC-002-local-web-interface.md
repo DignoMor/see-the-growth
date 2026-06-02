@@ -18,7 +18,7 @@ This spec covers a local-only web app interface backed by the existing todo doma
 
 ### Out of scope
 - Authentication, authorization, and multi-user behavior.
-- Persistent storage (database/files) beyond current in-memory behavior.
+- Persistent storage and database file paths (see `SPEC-003`; runtime via `SPEC-004`).
 - Edit, delete, due date, priority, tag, or filtering features.
 - Styling complexity beyond basic readable HTML.
 - Real-time updates (websockets, polling, push).
@@ -29,6 +29,10 @@ This spec covers a local-only web app interface backed by the existing todo doma
 - **Todo Page**: The main HTML page containing create/list/complete UI controls.
 - **Form Submission**: Browser request triggered by user interaction for create/complete actions.
 
+## Relationship to Later Specs
+- `SPEC-003` defines persistence at default path `data/todos.db` (see SPEC-003 Database path convention).
+- `SPEC-004` runs this web app via Docker Compose; the same `data/todos.db` file is used on the host and in the container.
+
 ## Functional Requirements
 
 ### FR-1 Run Locally
@@ -37,7 +41,7 @@ The system must provide an application entrypoint that starts an HTTP server loc
 Behavior:
 - The app must bind to localhost by default.
 - The app must provide a default port with optional override via configuration (for example, environment variable or CLI argument).
-- The app startup instructions must be documented in project docs.
+- The app startup instructions must be documented in project docs (Docker Compose per SPEC-004; URL `http://127.0.0.1:7676/`).
 
 ### FR-2 Render Todo Page
 The system must provide a route that returns HTML for the todo interface.

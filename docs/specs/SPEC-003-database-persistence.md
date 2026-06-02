@@ -14,7 +14,7 @@ This spec covers persistence, storage schema, and the application wiring needed 
 - Preserve `SPEC-001` domain rules (title validation, UUID IDs, creation order, completion semantics).
 - Preserve `SPEC-002` web behavior when backed by the database.
 - Initialize database schema on application startup when missing.
-- Configure database file location for local development.
+- Configure database file location for the default runtime (Docker Compose; see SPEC-004).
 - Deterministic tests using isolated database instances (in-memory or temporary files).
 
 ### Out of scope
@@ -30,6 +30,19 @@ This spec covers persistence, storage schema, and the application wiring needed 
 - `SPEC-001` domain behavior remains authoritative for business rules.
 - `SPEC-001` in-memory storage is superseded for runtime use by this spec; domain tests may continue using fast in-memory fakes where appropriate.
 - `SPEC-002` web routes and templates remain unchanged in user-visible behavior; only the backing store changes.
+- `SPEC-004` runs the app in Docker with the same default path as this spec (see Database path convention below).
+
+## Database path convention
+This spec is the source of truth for the SQLite file location.
+
+| Context | Path |
+|---------|------|
+| Application default (code) | `data/todos.db` relative to the process working directory |
+| Override | Environment variable `SEE_THE_GROWTH_DB_PATH` (absolute or relative path) |
+| Docker runtime (SPEC-004) | Container working directory `/app` → file `/app/data/todos.db`; host file `<repository-root>/data/todos.db` via bind mount `./data:/app/data` |
+| Unit/API tests | Isolated temporary paths or `:memory:` (not `data/todos.db`) |
+
+The relative default `data/todos.db` must not be duplicated as a different path in Compose unless `SEE_THE_GROWTH_DB_PATH` is intentionally overridden.
 
 ## Domain Terms
 - **Todo Repository**: Persistence boundary that stores and retrieves `TodoItem` records.
@@ -100,13 +113,13 @@ Behavior:
 - Bootstrap failures must surface as explicit application errors (not silent corruption).
 
 ### FR-5 Configure Database Location
-The system must allow selecting the SQLite database file for local runs.
+The system must allow selecting the SQLite database file for application runs.
 
 Behavior:
-- Default database path: `data/todos.db` relative to the project working directory.
+- Default database path: `data/todos.db` relative to the application working directory (see Database path convention).
 - Override via environment variable `SEE_THE_GROWTH_DB_PATH`.
 - The parent directory for the database file must be created if it does not exist.
-- Documentation must describe how to run the app with the default and custom paths.
+- Documentation must describe the default path and how to override it (README / SPEC-004).
 
 ### FR-6 Preserve SPEC-002 Web Integration
 The local web app must use the persisted todo façade by default.
@@ -154,7 +167,8 @@ Existing `SPEC-001` and `SPEC-002` tests must continue to pass after implementat
 ## Decisions
 - **Database engine**: SQLite for v1.
 - **Driver**: Python `sqlite3` standard library.
-- **Default path**: `data/todos.db`, overridable with `SEE_THE_GROWTH_DB_PATH`.
+- **Default path**: `data/todos.db` (relative); implemented in `src/see_the_growth/db/config.py` as `DEFAULT_DB_PATH`; overridable with `SEE_THE_GROWTH_DB_PATH`.
+- **Docker mapping (SPEC-004)**: `./data:/app/data` with container `WORKDIR` `/app` — no separate path; same relative default resolves to host `<repo>/data/todos.db`.
 - **Ordering key**: `created_at` UTC timestamp at insert time.
 - **Schema versioning**: implicit v1 bootstrap only; no migration framework in v1.
 
@@ -162,3 +176,5 @@ Existing `SPEC-001` and `SPEC-002` tests must continue to pass after implementat
 - 2026-06-02: Initial draft created.
 - 2026-06-02: Implemented SQLite persistence, repository/service layering, and web app wiring.
 - 2026-06-02: Repository uses thread-local SQLite connections for multi-threaded Flask runtime.
+- 2026-06-02: Documented Docker Compose (SPEC-004) as standard runtime; `data/todos.db` on host via bind mount.
+- 2026-06-02: Added Database path convention table; aligned SPEC-002/004 cross-references.
