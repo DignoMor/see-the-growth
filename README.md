@@ -29,3 +29,20 @@ see-the-growth/
 
 This project uses `cursor` for AI-assisted development.
 Cursor rules are defined in `.cursor/rules`.
+
+### Local Web App and Database
+
+Run the local todo web app from the project root (with dependencies installed in `.venv`):
+
+```bash
+.venv/bin/python -m flask --app see_the_growth.api.local_web_app:create_app run
+```
+
+By default, todos are stored in `data/todos.db` (the `data/` directory is created automatically).
+
+Use a custom database file path:
+
+```bash
+export SEE_THE_GROWTH_DB_PATH=/path/to/my-todos.db
+.venv/bin/python -m flask --app see_the_growth.api.local_web_app:create_app run
+```

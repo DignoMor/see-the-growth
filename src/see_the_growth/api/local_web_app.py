@@ -1,13 +1,27 @@
 from __future__ import annotations
 
+from typing import Protocol
+
 from flask import Flask, redirect, render_template, request, url_for
 
-from see_the_growth.domain import TodoDomainError, TodoList
+from see_the_growth.domain import TodoDomainError, TodoItem
+from see_the_growth.services.factory import create_default_todo_service
 
 
-def create_app(todo_list: TodoList | None = None) -> Flask:
+class TodoFacade(Protocol):
+    def create_todo(self, title: str) -> TodoItem:
+        ...
+
+    def list_todos(self) -> list[TodoItem]:
+        ...
+
+    def complete_todo(self, todo_id: str) -> None:
+        ...
+
+
+def create_app(todo_list: TodoFacade | None = None) -> Flask:
     app = Flask(__name__)
-    app.config["TODO_LIST"] = todo_list or TodoList()
+    app.config["TODO_LIST"] = todo_list or create_default_todo_service()
 
     @app.get("/")
     def todo_page():

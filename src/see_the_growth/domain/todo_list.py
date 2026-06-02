@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from uuid import uuid4
 
+from .title import normalize_title
+
 
 class TodoDomainError(ValueError):
     """Raised when todo domain validation fails."""
@@ -20,7 +22,7 @@ class TodoList:
         self._todos: list[TodoItem] = []
 
     def create_todo(self, title: str) -> TodoItem:
-        normalized_title = self._normalize_title(title)
+        normalized_title = normalize_title(title)
         if not normalized_title:
             raise TodoDomainError("Todo title must not be empty.")
 
@@ -37,7 +39,3 @@ class TodoList:
                 todo.completed = True
                 return
         raise TodoDomainError(f"Todo with id '{todo_id}' does not exist.")
-
-    @staticmethod
-    def _normalize_title(title: str) -> str:
-        return title.strip()
