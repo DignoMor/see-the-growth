@@ -36,6 +36,12 @@
         </li>
         {% endfor %}
       </ul>
+
+      {% if todos | selectattr('completed') | list %}
+      <form method="post" action="/todos/flush-completed" class="todo-flush-form">
+        <button type="submit" class="btn btn--secondary">Flush completed</button>
+      </form>
+      {% endif %}
     </main>
   </body>
 </html>

@@ -20,6 +20,7 @@ class TodoList:
 
     def __init__(self) -> None:
         self._todos: list[TodoItem] = []
+        self._flushed_ids: set[str] = set()
 
     def create_todo(self, title: str) -> TodoItem:
         normalized_title = normalize_title(title)
@@ -31,7 +32,7 @@ class TodoList:
         return todo
 
     def list_todos(self) -> list[TodoItem]:
-        return list(self._todos)
+        return [todo for todo in self._todos if todo.id not in self._flushed_ids]
 
     def complete_todo(self, todo_id: str) -> None:
         for todo in self._todos:
@@ -39,3 +40,8 @@ class TodoList:
                 todo.completed = True
                 return
         raise TodoDomainError(f"Todo with id '{todo_id}' does not exist.")
+
+    def flush_completed(self) -> None:
+        for todo in self._todos:
+            if todo.completed:
+                self._flushed_ids.add(todo.id)

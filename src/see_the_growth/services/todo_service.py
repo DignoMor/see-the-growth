@@ -19,6 +19,9 @@ class TodoRepository(Protocol):
     def mark_completed(self, todo_id: str) -> bool:
         ...
 
+    def flush_completed(self) -> None:
+        ...
+
 
 class TodoService:
     def __init__(self, repository: TodoRepository) -> None:
@@ -39,3 +42,6 @@ class TodoService:
     def complete_todo(self, todo_id: str) -> None:
         if not self._repository.mark_completed(str(todo_id)):
             raise TodoDomainError(f"Todo with id '{todo_id}' does not exist.")
+
+    def flush_completed(self) -> None:
+        self._repository.flush_completed()

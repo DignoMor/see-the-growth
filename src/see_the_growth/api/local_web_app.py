@@ -18,6 +18,9 @@ class TodoFacade(Protocol):
     def complete_todo(self, todo_id: str) -> None:
         ...
 
+    def flush_completed(self) -> None:
+        ...
+
 
 def create_app(todo_list: TodoFacade | None = None) -> Flask:
     app = Flask(__name__)
@@ -59,6 +62,11 @@ def create_app(todo_list: TodoFacade | None = None) -> Flask:
                 ),
                 404,
             )
+        return redirect(url_for("todo_page"))
+
+    @app.post("/todos/flush-completed")
+    def flush_completed():
+        app.config["TODO_LIST"].flush_completed()
         return redirect(url_for("todo_page"))
 
     return app

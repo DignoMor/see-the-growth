@@ -29,8 +29,8 @@ class SqliteTodoRepository:
         created_at = datetime.now(timezone.utc).isoformat()
         self._connection.execute(
             """
-            INSERT INTO todos (id, title, completed, created_at)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO todos (id, title, completed, created_at, flushed)
+            VALUES (?, ?, ?, ?, 0)
             """,
             (todo.id, todo.title, int(todo.completed), created_at),
         )
@@ -41,6 +41,7 @@ class SqliteTodoRepository:
             """
             SELECT id, title, completed
             FROM todos
+            WHERE flushed = 0
             ORDER BY created_at ASC, id ASC
             """
         ).fetchall()
@@ -48,6 +49,16 @@ class SqliteTodoRepository:
             TodoItem(id=row[0], title=row[1], completed=bool(row[2]))
             for row in rows
         ]
+
+    def flush_completed(self) -> None:
+        self._connection.execute(
+            """
+            UPDATE todos
+            SET flushed = 1
+            WHERE completed = 1 AND flushed = 0
+            """
+        )
+        self._connection.commit()
 
     def mark_completed(self, todo_id: str) -> bool:
         row = self._connection.execute(
