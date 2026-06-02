@@ -2,34 +2,40 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>Todo List</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>See the Growth — Todos</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='todo.css') }}">
   </head>
   <body>
-    <h1>Todo List</h1>
+    <main class="todo-page">
+      <h1>Todo List</h1>
 
-    {% if error_message %}
-    <p role="alert">{{ error_message }}</p>
-    {% endif %}
+      {% if error_message %}
+      <p role="alert" class="alert alert--error">{{ error_message }}</p>
+      {% endif %}
 
-    <form method="post" action="/todos">
-      <label for="title">Title</label>
-      <input id="title" name="title" type="text">
-      <button type="submit">Add Todo</button>
-    </form>
+      <form method="post" action="/todos" class="todo-form">
+        <label for="title">Title</label>
+        <input id="title" name="title" type="text">
+        <button type="submit" class="btn btn--primary">Add todo</button>
+      </form>
 
-    <ul>
-      {% for todo in todos %}
-      <li>
-        <span>{{ todo.title }}</span>
-        {% if todo.completed %}
-        <strong>completed</strong>
-        {% else %}
-        <form method="post" action="/todos/{{ todo.id }}/complete" style="display:inline;">
-          <button type="submit">Complete</button>
-        </form>
-        {% endif %}
-      </li>
-      {% endfor %}
-    </ul>
+      {% if not todos %}
+      <p class="todo-empty">No todos yet</p>
+      {% endif %}
+
+      <ul class="todo-list">
+        {% for todo in todos %}
+        <li class="todo-item{% if todo.completed %} todo-item--completed{% endif %}">
+          <span class="todo-item__title">{{ todo.title }}</span>
+          {% if not todo.completed %}
+          <form method="post" action="/todos/{{ todo.id }}/complete" class="todo-complete-form">
+            <button type="submit" class="btn btn--secondary">Complete</button>
+          </form>
+          {% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+    </main>
   </body>
 </html>

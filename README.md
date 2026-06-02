@@ -21,7 +21,7 @@ docker compose logs -f web
 docker compose down
 ```
 
-Open the app at [http://127.0.0.1:7676/](http://127.0.0.1:7676/). The service is published on the host loopback only (`127.0.0.1:7676` → container port `5000`), so it is not reachable from other machines on your network.
+Open the app at [http://127.0.0.1:7676/](http://127.0.0.1:7676/). The service is published on the host loopback only (`127.0.0.1:7676` → container port `5000`), so it is not reachable from other machines on your network. The todo page uses a small static stylesheet for layout and readability (SPEC-005).
 
 ### Database (`data/todos.db`)
 
