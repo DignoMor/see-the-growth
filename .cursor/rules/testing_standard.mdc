@@ -1,0 +1,11 @@
+---
+alwaysApply: true
+---
+
+# Testing Standards
+
+- Use `unittest`.
+- Put pure business logic tests in `tests/unit/`.
+- Put HTTP/API tests in `tests/api/`.
+- Prefer deterministic tests; avoid sleeps and real external services.
+- Run the smallest relevant test subset first, then full suite before finish.
