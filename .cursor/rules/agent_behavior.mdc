@@ -20,3 +20,9 @@ alwaysApply: true
 - Use `src/see_the_growth/db/` for persistence models and repositories.
 - Use `src/see_the_growth/services/` for orchestration and integration logic.
 - Place tests under `tests/` with `tests/unit/`, `tests/api/`, and `tests/e2e/`.
+
+# Development Environment
+
+- Use a project-local virtual environment at `.venv` for development commands.
+- Install dependencies with `.venv/bin/python -m pip install -r requirements.txt`.
+- Run tests with `.venv/bin/python -m unittest ...` to avoid global environment drift.
