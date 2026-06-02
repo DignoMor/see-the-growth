@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Todo List</title>
+  </head>
+  <body>
+    <h1>Todo List</h1>
+
+    {% if error_message %}
+    <p role="alert">{{ error_message }}</p>
+    {% endif %}
+
+    <form method="post" action="/todos">
+      <label for="title">Title</label>
+      <input id="title" name="title" type="text">
+      <button type="submit">Add Todo</button>
+    </form>
+
+    <ul>
+      {% for todo in todos %}
+      <li>
+        <span>{{ todo.title }}</span>
+        {% if todo.completed %}
+        <strong>completed</strong>
+        {% else %}
+        <form method="post" action="/todos/{{ todo.id }}/complete" style="display:inline;">
+          <button type="submit">Complete</button>
+        </form>
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+  </body>
+</html>
