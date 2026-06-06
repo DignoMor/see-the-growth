@@ -1,47 +1,42 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>See the Growth — Todos</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='todo.css') }}">
-  </head>
-  <body>
-    <main class="todo-page">
-      <h1>Todo List</h1>
+{% extends "base.html" %}
 
-      {% if error_message %}
-      <p role="alert" class="alert alert--error">{{ error_message }}</p>
-      {% endif %}
+{% block title %}See the Growth — Todos{% endblock %}
 
-      <form method="post" action="/todos" class="todo-form">
-        <label for="title">Title</label>
-        <input id="title" name="title" type="text">
-        <button type="submit" class="btn btn--primary">Add todo</button>
-      </form>
+{% block content %}
+<div class="todo-page">
+  <h1>Todo List</h1>
 
-      {% if not todos %}
-      <p class="todo-empty">No todos yet</p>
-      {% endif %}
+  {% if error_message %}
+  <p role="alert" class="alert alert--error">{{ error_message }}</p>
+  {% endif %}
 
-      <ul class="todo-list">
-        {% for todo in todos %}
-        <li class="todo-item{% if todo.completed %} todo-item--completed{% endif %}">
-          <span class="todo-item__title">{{ todo.title }}</span>
-          {% if not todo.completed %}
-          <form method="post" action="/todos/{{ todo.id }}/complete" class="todo-complete-form">
-            <button type="submit" class="btn btn--secondary">Complete</button>
-          </form>
-          {% endif %}
-        </li>
-        {% endfor %}
-      </ul>
+  <form method="post" action="/todos" class="todo-form">
+    <label for="title">Title</label>
+    <input id="title" name="title" type="text">
+    <button type="submit" class="btn btn--primary">Add todo</button>
+  </form>
 
-      {% if todos | selectattr('completed') | list %}
-      <form method="post" action="/todos/flush-completed" class="todo-flush-form">
-        <button type="submit" class="btn btn--secondary">Flush completed</button>
+  {% if not todos %}
+  <p class="todo-empty">No todos yet</p>
+  {% endif %}
+
+  <ul class="todo-list">
+    {% for todo in todos %}
+    <li class="todo-item{% if todo.completed %} todo-item--completed{% endif %}">
+      <span class="todo-item__title">{{ todo.title }}</span>
+      {% if not todo.completed %}
+      <form method="post" action="/todos/{{ todo.id }}/complete" class="todo-complete-form">
+        <button type="submit" class="btn btn--secondary">Complete</button>
       </form>
       {% endif %}
-    </main>
-  </body>
-</html>
+    </li>
+    {% endfor %}
+  </ul>
+
+  {% if todos | selectattr('completed') | list %}
+  <form method="post" action="/todos/flush-completed" class="todo-flush-form">
+    <button type="submit" class="btn btn--secondary">Flush completed</button>
+  </form>
+  {% endif %}
+</div>
+{% endblock %}

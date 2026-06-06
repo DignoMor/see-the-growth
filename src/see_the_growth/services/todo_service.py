@@ -1,10 +1,11 @@
-"""Todo application service backed by a repository (SPEC-003)."""
+"""Todo application service backed by a repository (SPEC-003, SPEC-008)."""
 
 from __future__ import annotations
 
 from typing import Protocol
 from uuid import uuid4
 
+from see_the_growth.domain.tag import TagSummary, normalize_tag_name
 from see_the_growth.domain.title import normalize_title
 from see_the_growth.domain.todo_list import TodoDomainError, TodoItem
 
@@ -20,6 +21,12 @@ class TodoRepository(Protocol):
         ...
 
     def flush_completed(self) -> None:
+        ...
+
+    def add_tags_for_todo(self, todo_id: str, tag_names: list[str]) -> None:
+        ...
+
+    def list_tag_summaries(self) -> list[TagSummary]:
         ...
 
 
@@ -45,3 +52,13 @@ class TodoService:
 
     def flush_completed(self) -> None:
         self._repository.flush_completed()
+
+    def add_tags_to_todo(self, todo_id: str, tag_names: list[str]) -> None:
+        normalized_names = [normalize_tag_name(name) for name in tag_names]
+        try:
+            self._repository.add_tags_for_todo(str(todo_id), normalized_names)
+        except ValueError as exc:
+            raise TodoDomainError(str(exc)) from exc
+
+    def list_tag_summaries(self) -> list[TagSummary]:
+        return self._repository.list_tag_summaries()

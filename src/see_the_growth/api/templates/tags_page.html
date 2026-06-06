@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}See the Growth — Tags{% endblock %}
+
+{% block content %}
+<div class="tags-page">
+  <h1>Tags</h1>
+
+  {% if not tag_summaries %}
+  <p class="tags-empty">No tags yet</p>
+  {% else %}
+  <ul class="tags-list">
+    {% for tag in tag_summaries %}
+    <li class="tags-item">
+      <span class="tags-item__name">{{ tag.name }}</span>
+      <span class="tags-item__unfinished-count">{{ tag.unfinished_count }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+</div>
+{% endblock %}
