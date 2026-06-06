@@ -62,13 +62,13 @@ see-the-growth/
 
 ### Tests
 
-Unit and API tests run on the host with a local virtual environment (they do not require Docker):
+Unit and API tests run in Docker (SPEC-007). Requires Docker Engine and the Compose v2 plugin, same as running the app:
 
 ```bash
-python3 -m venv .venv
-.venv/bin/python -m pip install -r requirements.txt
-.venv/bin/python -m unittest discover -s tests/unit -s tests/api -p 'test_*.py' -v
+docker compose run --rm --build test
 ```
+
+The `test` service uses the Compose `test` profile and does not start with `docker compose up`. It bind-mounts `./src` and `./tests` so edits on the host are picked up without rebuilding the image (rebuild when `requirements.txt` changes).
 
 ### AI Assisted Development
 

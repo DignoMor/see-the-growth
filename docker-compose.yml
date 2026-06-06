@@ -8,3 +8,19 @@ services:
       SEE_THE_GROWTH_PORT: "5000"
     volumes:
       - ./data:/app/data
+
+  test:
+    profiles:
+      - test
+    build: .
+    environment:
+      PYTHONPATH: /app/src
+    volumes:
+      - ./src:/app/src:ro
+      - ./tests:/app/tests:ro
+    command:
+      - sh
+      - -c
+      - >-
+        python -m unittest discover -s tests/unit -p 'test_*.py' -v &&
+        python -m unittest discover -s tests/api -p 'test_*.py' -v

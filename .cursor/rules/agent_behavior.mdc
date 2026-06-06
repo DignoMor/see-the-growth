@@ -25,6 +25,4 @@ alwaysApply: true
 
 - Run the web app with Docker Compose from the repo root: `docker compose up --build` (see SPEC-004).
 - Application data: SPEC-003 default `data/todos.db` → host `<repo>/data/todos.db`, container `/app/data/todos.db` (SPEC-004 bind mount).
-- Use a project-local virtual environment at `.venv` only for unit/API tests and tooling.
-- Install test dependencies with `.venv/bin/python -m pip install -r requirements.txt`.
-- Run tests with `.venv/bin/python -m unittest ...` to avoid global environment drift.
+- Run unit and API tests with Docker: `docker compose run --rm --build test` (see SPEC-007).

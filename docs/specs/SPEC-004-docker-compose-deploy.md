@@ -30,7 +30,7 @@ This spec covers container packaging, orchestration with Docker Compose, persist
 - `SPEC-001` domain behavior must be unchanged when running in a container.
 - `SPEC-002` web routes, templates, and HTTP semantics remain authoritative for user-visible behavior.
 - `SPEC-003` Database path convention is authoritative: default `data/todos.db` relative to working directory; Docker uses `WORKDIR` `/app` and bind mount `./data:/app/data` (host file `<repo>/data/todos.db`, container file `/app/data/todos.db`). Do not set `SEE_THE_GROWTH_DB_PATH` in the default Compose file.
-- A host `.venv` is used only for unit/API tests, not for running the web app.
+- Unit and API tests run via Docker Compose (`docker compose run --rm --build test`; see SPEC-007), not via a host `.venv`.
 
 ## Domain Terms
 - **Application Image**: OCI image built from the project `Dockerfile` containing app code and Python dependencies.
@@ -117,7 +117,7 @@ Behavior:
 Running via Compose must not change `SPEC-001`–`SPEC-003` behavior. Host exposure is loopback on port `7676` (SPEC-002 local-only intent).
 
 Behavior:
-- All existing unit and API tests pass unchanged on the host (CI does not require Docker for default test runs).
+- All existing unit and API tests pass unchanged via the SPEC-007 Docker test runner.
 - Create, list, and complete todos over HTTP behave as in `SPEC-002`.
 - Validation and error status codes remain the same.
 
@@ -150,7 +150,7 @@ Documented smoke script or checklist executed after `docker compose up --build`:
 - `tests/e2e/test_spec_004_compose_smoke.py` — skip unless `RUN_SPEC_004_DOCKER_TESTS=1` and Docker CLI available; runs compose up, curls endpoints, compose down. Keeps default CI fast and deterministic.
 
 ### Regression
-- Full existing `tests/unit/` and `tests/api/` suites pass on the host without Docker.
+- Full existing `tests/unit/` and `tests/api/` suites pass via `docker compose run --rm --build test` (SPEC-007).
 
 ## Implementation Notes (non-normative)
 - Entrypoint example: `python -m flask run --host=0.0.0.0 --port=${SEE_THE_GROWTH_PORT}` (host loopback enforced by Compose `ports`).
@@ -166,7 +166,7 @@ Documented smoke script or checklist executed after `docker compose up --build`:
 - **Default URL**: `http://127.0.0.1:7676/`.
 - **In-container bind**: `0.0.0.0:5000` inside the container network namespace; local-only access enforced on the host via `127.0.0.1:7676`.
 - **HTTP server (v1)**: Flask built-in server via `flask run` unless implementation adds `gunicorn` with an explicit follow-up note in the change log.
-- **CI**: Docker smoke tests opt-in; default test runs remain host-only.
+- **CI**: Docker smoke tests opt-in; default test runs use SPEC-007 Docker test runner when CI is added.
 
 ## Change Log
 - 2026-06-02: Initial draft created.
