@@ -6,6 +6,7 @@ services:
     environment:
       FLASK_APP: see_the_growth.api.local_web_app:create_app
       SEE_THE_GROWTH_PORT: "5000"
+      SEE_THE_GROWTH_GATE_PASSWORD: ""
     volumes:
       - ./data:/app/data
     restart: unless-stopped

@@ -17,6 +17,11 @@
           href="/tags"
           class="app-nav__link{% if active_nav == 'tags' %} app-nav__link--active{% endif %}"
         >Tags</a>
+        {% if show_logout %}
+        <form method="post" action="{{ url_for('logout') }}" class="app-nav__logout">
+          <button type="submit" class="app-nav__link app-nav__link--button">Log out</button>
+        </form>
+        {% endif %}
       </nav>
       <main class="app-content">
         {% block content %}{% endblock %}

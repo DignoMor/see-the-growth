@@ -2,8 +2,17 @@ from __future__ import annotations
 
 from typing import Protocol
 
-from flask import Flask, redirect, render_template, request, url_for
+from flask import Flask, redirect, render_template, request, session, url_for
 
+from see_the_growth.api.auth import (
+    clear_authentication,
+    is_authenticated,
+    mark_authenticated,
+    safe_redirect_target,
+    secret_key_for_gate_password,
+    verify_gate_password,
+)
+from see_the_growth.api.auth_config import AuthConfig, resolve_auth_config
 from see_the_growth.domain import TodoDomainError, TodoFilter, TodoItem
 from see_the_growth.domain.tag import TagSummary, parse_tag_names
 from see_the_growth.domain.todo_filter import parse_todo_filter_from_query
@@ -100,9 +109,95 @@ def _render_todo_page(
     )
 
 
-def create_app(todo_list: TodoFacade | None = None) -> Flask:
+def _auth_config_from_app(app: Flask) -> AuthConfig:
+    return app.config["AUTH_CONFIG"]
+
+
+def _render_login_page(
+    *,
+    error_message: str | None = None,
+    next_url: str | None = None,
+    status_code: int = 200,
+):
+    return (
+        render_template(
+            "login_page.html",
+            error_message=error_message,
+            next_url=next_url,
+            auth_enabled=True,
+            show_logout=False,
+        ),
+        status_code,
+    )
+
+
+def create_app(
+    todo_list: TodoFacade | None = None,
+    auth_config: AuthConfig | None = None,
+) -> Flask:
     app = Flask(__name__)
     app.config["TODO_LIST"] = todo_list or create_default_todo_service()
+    resolved_auth = auth_config if auth_config is not None else resolve_auth_config()
+    app.config["AUTH_CONFIG"] = resolved_auth
+    if resolved_auth.enabled and resolved_auth.gate_password is not None:
+        app.secret_key = secret_key_for_gate_password(resolved_auth.gate_password)
+
+    @app.before_request
+    def require_gate_password():
+        auth = _auth_config_from_app(app)
+        if not auth.enabled:
+            return None
+        if request.path == "/health":
+            return None
+        if request.path.startswith("/static/"):
+            return None
+        if request.path == "/login":
+            return None
+        if is_authenticated(session):
+            return None
+        return redirect(url_for("login", next=request.full_path.rstrip("?")))
+
+    @app.context_processor
+    def inject_auth_context():
+        auth = _auth_config_from_app(app)
+        return {
+            "auth_enabled": auth.enabled,
+            "show_logout": auth.enabled and is_authenticated(session),
+        }
+
+    @app.get("/login")
+    def login():
+        auth = _auth_config_from_app(app)
+        if not auth.enabled:
+            return redirect(url_for("todo_page"))
+        if is_authenticated(session):
+            return redirect(safe_redirect_target(request.args.get("next")))
+        return _render_login_page(next_url=request.args.get("next"))
+
+    @app.post("/login")
+    def login_submit():
+        auth = _auth_config_from_app(app)
+        if not auth.enabled:
+            return redirect(url_for("todo_page"))
+        next_url = request.form.get("next")
+        submitted = request.form.get("password", "")
+        gate_password = auth.gate_password
+        if gate_password is None or not verify_gate_password(submitted, gate_password):
+            return _render_login_page(
+                error_message="Incorrect password",
+                next_url=next_url,
+                status_code=401,
+            )
+        mark_authenticated(session)
+        return redirect(safe_redirect_target(next_url))
+
+    @app.post("/logout")
+    def logout():
+        auth = _auth_config_from_app(app)
+        if not auth.enabled:
+            return redirect(url_for("todo_page"))
+        clear_authentication(session)
+        return redirect(url_for("login"))
 
     @app.get("/health")
     def health():

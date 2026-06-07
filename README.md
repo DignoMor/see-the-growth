@@ -38,9 +38,22 @@ docker compose down
 rm -f data/todos.db
 ```
 
+### Gate password (SPEC-013)
+
+Optional shared password to protect the app on a network-facing deploy. When unset, auth is disabled (default for local dev and tests).
+
+Set in `docker-compose.yml`:
+
+```yaml
+environment:
+  SEE_THE_GROWTH_GATE_PASSWORD: "your-secret-password"
+```
+
+Unauthenticated requests redirect to `/login`. `GET /health` stays public for probes.
+
 ### Server deployment
 
-Same commands as local — clone the repo on the server, run `docker compose up --build -d`, and open port **7676** in the host firewall if needed. TLS and reverse-proxy setup are left to the operator (out of scope).
+Same commands as local — clone the repo on the server, run `docker compose up --build -d`, and open port **7676** in the host firewall if needed. Set `SEE_THE_GROWTH_GATE_PASSWORD` when exposing the app on a network. TLS and reverse-proxy setup are left to the operator (out of scope).
 
 ## Development
 
