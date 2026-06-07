@@ -2,12 +2,31 @@ services:
   web:
     build: .
     ports:
-      - "127.0.0.1:7676:5000"
+      - "7676:5000"
     environment:
       FLASK_APP: see_the_growth.api.local_web_app:create_app
       SEE_THE_GROWTH_PORT: "5000"
     volumes:
       - ./data:/app/data
+    restart: unless-stopped
+    command:
+      - sh
+      - -c
+      - >-
+        exec gunicorn
+        --bind 0.0.0.0:$$SEE_THE_GROWTH_PORT
+        --workers 2
+        'see_the_growth.api.local_web_app:create_app()'
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/health')
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
   test:
     profiles:

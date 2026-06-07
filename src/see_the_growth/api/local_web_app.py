@@ -104,6 +104,10 @@ def create_app(todo_list: TodoFacade | None = None) -> Flask:
     app = Flask(__name__)
     app.config["TODO_LIST"] = todo_list or create_default_todo_service()
 
+    @app.get("/health")
+    def health():
+        return {"status": "ok"}, 200
+
     @app.get("/")
     def todo_page():
         todos_backend = app.config["TODO_LIST"]

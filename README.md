@@ -21,7 +21,9 @@ docker compose logs -f web
 docker compose down
 ```
 
-Open the app at [http://127.0.0.1:7676/](http://127.0.0.1:7676/). The service is published on the host loopback only (`127.0.0.1:7676` → container port `5000`), so it is not reachable from other machines on your network. The todo page uses a small static stylesheet for layout and readability (SPEC-005).
+Open the app at [http://127.0.0.1:7676/](http://127.0.0.1:7676/) (or `http://<server-host>:7676/` on a remote machine). Host port **7676** maps to container port **5000**. The todo page uses a small static stylesheet for layout and readability (SPEC-005).
+
+Health probe: `GET /health` returns `{"status":"ok"}`.
 
 ### Database (`data/todos.db`)
 
@@ -35,6 +37,10 @@ To reset todos:
 docker compose down
 rm -f data/todos.db
 ```
+
+### Server deployment
+
+Same commands as local — clone the repo on the server, run `docker compose up --build -d`, and open port **7676** in the host firewall if needed. TLS and reverse-proxy setup are left to the operator (out of scope).
 
 ## Development
 
