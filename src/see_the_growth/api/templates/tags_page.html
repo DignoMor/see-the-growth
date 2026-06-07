@@ -6,6 +6,10 @@
 <div class="tags-page">
   <h1>Tags</h1>
 
+  {% if error_message %}
+  <p role="alert" class="alert alert--error">{{ error_message }}</p>
+  {% endif %}
+
   {% if not tag_summaries %}
   <p class="tags-empty">No tags yet</p>
   {% else %}
@@ -14,6 +18,11 @@
     <li class="tags-item">
       <a href="/?tag={{ tag.name | urlencode }}" class="tags-item__name">{{ tag.name }}</a>
       <span class="tags-item__unfinished-count">{{ tag.unfinished_count }}</span>
+      {% if tag.name != "task" %}
+      <form method="post" action="/tags/{{ tag.name | urlencode }}/delete" class="tags-item__delete-form">
+        <button type="submit" class="btn btn--secondary tags-item__delete-btn">Delete</button>
+      </form>
+      {% endif %}
     </li>
     {% endfor %}
   </ul>

@@ -31,6 +31,9 @@ class TodoFacade(Protocol):
     def list_tag_summaries(self) -> list[TagSummary]:
         ...
 
+    def delete_tag(self, tag_name: str) -> None:
+        ...
+
 
 def _todo_filter_from_request() -> TodoFilter:
     return parse_todo_filter_from_query(
@@ -49,6 +52,29 @@ def _todo_rows(
     todo_items: list[TodoItem], facade: TodoFacade
 ) -> list[tuple[TodoItem, list[str]]]:
     return [(todo, facade.tags_for_todo(todo.id)) for todo in todo_items]
+
+
+def _render_tags_page(
+    todos_backend: TodoFacade,
+    *,
+    error_message: str | None = None,
+    status_code: int = 200,
+):
+    return (
+        render_template(
+            "tags_page.html",
+            tag_summaries=todos_backend.list_tag_summaries(),
+            active_nav="tags",
+            error_message=error_message,
+        ),
+        status_code,
+    )
+
+
+def _delete_tag_error_status(exc: TodoDomainError) -> int:
+    if "cannot be deleted" in str(exc).lower():
+        return 400
+    return 404
 
 
 def _render_todo_page(
@@ -100,15 +126,20 @@ def create_app(todo_list: TodoFacade | None = None) -> Flask:
 
     @app.get("/tags")
     def tags_page():
-        tag_summaries = app.config["TODO_LIST"].list_tag_summaries()
-        return (
-            render_template(
-                "tags_page.html",
-                tag_summaries=tag_summaries,
-                active_nav="tags",
-            ),
-            200,
-        )
+        return _render_tags_page(app.config["TODO_LIST"])
+
+    @app.post("/tags/<tag_name>/delete")
+    def delete_tag(tag_name: str):
+        todos = app.config["TODO_LIST"]
+        try:
+            todos.delete_tag(tag_name)
+        except TodoDomainError as exc:
+            return _render_tags_page(
+                todos,
+                error_message=str(exc),
+                status_code=_delete_tag_error_status(exc),
+            )
+        return redirect(url_for("tags_page"))
 
     @app.post("/todos")
     def create_todo():

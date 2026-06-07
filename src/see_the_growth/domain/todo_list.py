@@ -101,6 +101,16 @@ class TodoList:
             )
         return summaries
 
+    def delete_tag(self, tag_name: str) -> None:
+        normalized = normalize_tag_name(tag_name)
+        if normalized == "task":
+            raise TodoDomainError("The task tag cannot be deleted.")
+        if normalized not in self._all_tags:
+            raise TodoDomainError(f"Tag '{normalized}' does not exist.")
+        self._all_tags.discard(normalized)
+        for tags in self._todo_tags.values():
+            tags.discard(normalized)
+
     def _is_todo_addressable(self, todo_id: str) -> bool:
         if todo_id in self._flushed_ids:
             return False

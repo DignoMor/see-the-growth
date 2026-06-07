@@ -200,6 +200,33 @@ class SqliteTodoRepository:
             for row in rows
         ]
 
+    def delete_tag(self, tag_name: str) -> None:
+        connection = self._connection
+        try:
+            connection.execute("BEGIN")
+            row = connection.execute(
+                "SELECT id FROM tags WHERE name = ?",
+                (tag_name,),
+            ).fetchone()
+            if row is None:
+                raise ValueError(f"Tag '{tag_name}' does not exist.")
+            tag_id = str(row[0])
+            connection.execute(
+                "DELETE FROM todo_tags WHERE tag_id = ?",
+                (tag_id,),
+            )
+            connection.execute(
+                "DELETE FROM tags WHERE id = ?",
+                (tag_id,),
+            )
+            connection.commit()
+        except ValueError:
+            connection.rollback()
+            raise
+        except Exception:
+            connection.rollback()
+            raise
+
     def _is_todo_visible(self, todo_id: str) -> bool:
         row = self._connection.execute(
             "SELECT 1 FROM todos WHERE id = ? AND flushed = 0",

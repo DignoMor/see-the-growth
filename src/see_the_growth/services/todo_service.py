@@ -35,6 +35,9 @@ class TodoRepository(Protocol):
     def list_tag_summaries(self) -> list[TagSummary]:
         ...
 
+    def delete_tag(self, tag_name: str) -> None:
+        ...
+
 
 class TodoService:
     def __init__(self, repository: TodoRepository) -> None:
@@ -86,3 +89,12 @@ class TodoService:
 
     def list_tag_summaries(self) -> list[TagSummary]:
         return self._repository.list_tag_summaries()
+
+    def delete_tag(self, tag_name: str) -> None:
+        normalized = normalize_tag_name(tag_name)
+        if normalized == "task":
+            raise TodoDomainError("The task tag cannot be deleted.")
+        try:
+            self._repository.delete_tag(normalized)
+        except ValueError as exc:
+            raise TodoDomainError(str(exc)) from exc
