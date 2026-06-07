@@ -88,13 +88,31 @@ def parse_tag_match_mode(raw: str) -> TagMatchMode:
 
 
 def parse_todo_filter_from_query(
-    tag_param: str = "",
+    tag_params: str | list[str] = "",
     tag_match_param: str = "",
 ) -> TodoFilter:
+    """Build a filter from query params (SPEC-009, SPEC-011).
+
+    Accepts a single comma-separated string or a list of tag param values
+    (for example repeated ``tag`` keys from a checkbox GET form).
+    """
     tag_match = parse_tag_match_mode(tag_match_param)
-    if not tag_param.strip():
-        return TodoFilter.none()
-    tag_names = parse_tag_names(tag_param)
+    raw_values: list[str]
+    if isinstance(tag_params, str):
+        raw_values = [tag_params] if tag_params else []
+    else:
+        raw_values = list(tag_params)
+
+    tag_names: list[str] = []
+    seen: set[str] = set()
+    for raw in raw_values:
+        if not raw.strip():
+            continue
+        for name in parse_tag_names(raw):
+            if name not in seen:
+                seen.add(name)
+                tag_names.append(name)
+
     if not tag_names:
         return TodoFilter.none()
     return TodoFilter.for_tags(tag_names, match=tag_match)

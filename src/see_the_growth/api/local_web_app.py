@@ -37,7 +37,7 @@ class TodoFacade(Protocol):
 
 def _todo_filter_from_request() -> TodoFilter:
     return parse_todo_filter_from_query(
-        tag_param=request.args.get("tag", ""),
+        tag_params=request.args.getlist("tag"),
         tag_match_param=request.args.get("tag_match", ""),
     )
 
@@ -90,6 +90,7 @@ def _render_todo_page(
             "todo_page.html",
             todos=todos,
             todo_rows=_todo_rows(todos, todos_backend),
+            tag_summaries=todos_backend.list_tag_summaries(),
             error_message=error_message,
             active_nav="todo",
             active_filter=active_filter,

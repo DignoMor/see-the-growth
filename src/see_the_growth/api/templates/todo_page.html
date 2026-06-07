@@ -18,6 +18,50 @@
   <p role="alert" class="alert alert--error">{{ error_message }}</p>
   {% endif %}
 
+  <form method="get" action="/" class="todo-tag-filter">
+    <fieldset class="todo-tag-filter__tags">
+      <legend>Filter by tags</legend>
+      {% if tag_summaries %}
+      {% for tag in tag_summaries %}
+      <label class="todo-tag-filter__option" for="filter-tag-{{ tag.name }}">
+        <input
+          type="checkbox"
+          id="filter-tag-{{ tag.name }}"
+          name="tag"
+          value="{{ tag.name }}"
+          {% if tag.name in active_filter.tag_names %}checked{% endif %}
+        >
+        {{ tag.name }}
+      </label>
+      {% endfor %}
+      {% else %}
+      <p class="todo-tag-filter__empty">No tags yet</p>
+      {% endif %}
+    </fieldset>
+    <div class="todo-tag-filter__match">
+      <span class="todo-tag-filter__match-label">Match</span>
+      <label class="todo-tag-filter__match-option">
+        <input
+          type="radio"
+          name="tag_match"
+          value="any"
+          {% if active_filter.tag_match.value == 'any' %}checked{% endif %}
+        >
+        Any tag
+      </label>
+      <label class="todo-tag-filter__match-option">
+        <input
+          type="radio"
+          name="tag_match"
+          value="all"
+          {% if active_filter.tag_match.value == 'all' %}checked{% endif %}
+        >
+        All tags
+      </label>
+    </div>
+    <button type="submit" class="btn btn--secondary">Apply filter</button>
+  </form>
+
   <form method="post" action="/todos{% if active_filter_query %}?{{ active_filter_query }}{% endif %}" class="todo-form">
     <label for="title">Title</label>
     <input id="title" name="title" type="text">

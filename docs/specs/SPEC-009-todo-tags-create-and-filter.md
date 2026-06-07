@@ -25,7 +25,7 @@ This spec extends SPEC-008 with todo-page UX: tag input on create, tag display o
 
 ### Out of scope
 - Edit or remove tags on existing todos.
-- Multi-tag filter UI (query params support multiple tags; advanced UI deferred).
+- Multi-tag filter UI (see **SPEC-011**; query params already support multiple tags).
 - Tag CRUD in the UI (rename, delete, merge).
 - Autocomplete, multi-select, or JavaScript tag picker.
 - Authentication or multi-user behavior.

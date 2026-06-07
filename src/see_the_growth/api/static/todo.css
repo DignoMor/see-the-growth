@@ -180,6 +180,60 @@ body {
   border-radius: 0.25rem;
 }
 
+.todo-tag-filter {
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+  background: #fff;
+  border: 1px solid #e7e5e4;
+  border-radius: 0.375rem;
+}
+
+.todo-tag-filter__tags {
+  margin: 0 0 0.75rem;
+  padding: 0;
+  border: none;
+}
+
+.todo-tag-filter__tags legend {
+  padding: 0;
+  margin: 0 0 0.5rem;
+  font-weight: 600;
+  color: #44403c;
+}
+
+.todo-tag-filter__option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin: 0 0.75rem 0.5rem 0;
+  cursor: pointer;
+}
+
+.todo-tag-filter__empty {
+  margin: 0;
+  color: #78716c;
+}
+
+.todo-tag-filter__match {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  margin: 0 0 0.75rem;
+}
+
+.todo-tag-filter__match-label {
+  font-weight: 500;
+  color: #44403c;
+}
+
+.todo-tag-filter__match-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  cursor: pointer;
+}
+
 .todo-list {
   margin: 0;
   padding: 0;
