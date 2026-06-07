@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}See the Growth — Login{% endblock %}
+
+{% block content %}
+<div class="login-page">
+  <h1>Login</h1>
+  <p>Enter the gate password to access the app.</p>
+
+  {% if error_message %}
+  <p role="alert" class="alert alert--error">{{ error_message }}</p>
+  {% endif %}
+
+  <form method="post" action="{{ url_for('login') }}" class="login-form">
+    {% if next_url %}
+    <input type="hidden" name="next" value="{{ next_url }}">
+    {% endif %}
+    <label for="password">Password</label>
+    <input type="password" id="password" name="password" required autofocus>
+    <button type="submit" class="btn btn--primary">Sign in</button>
+  </form>
+</div>
+{% endblock %}

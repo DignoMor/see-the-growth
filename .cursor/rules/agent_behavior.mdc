@@ -1,0 +1,28 @@
+---
+alwaysApply: true
+---
+
+# Spec Driven Development
+
+- Before writing implementation code, read or create a spec in `docs/specs/`.
+- For each feature, create/modify tests first and make them fail before coding.
+- Link tests to spec IDs (example: `SPEC-002`) in test names or docstrings.
+- Implement the minimum code needed to pass tests.
+- If behavior changes, update both spec and tests in the same change.
+- Do not add scope outside the active spec unless asked.
+
+# Project Structure Discipline
+
+- Use Python as the default implementation language.
+- Place app code under `src/see_the_growth/`.
+- Use `src/see_the_growth/domain/` for business rules and entities.
+- Use `src/see_the_growth/api/` for HTTP/API routes and schemas.
+- Use `src/see_the_growth/db/` for persistence models and repositories.
+- Use `src/see_the_growth/services/` for orchestration and integration logic.
+- Place tests under `tests/` with `tests/unit/`, `tests/api/`, and `tests/e2e/`.
+
+# Development Environment
+
+- Run the web app with Docker Compose from the repo root: `docker compose up --build` (see SPEC-004).
+- Application data: SPEC-003 default `data/todos.db` → host `<repo>/data/todos.db`, container `/app/data/todos.db` (SPEC-004 bind mount).
+- Run unit and API tests with Docker: `docker compose run --rm --build test` (see SPEC-007).

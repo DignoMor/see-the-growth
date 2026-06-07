@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}See the Growth{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='todo.css') }}">
+  </head>
+  <body>
+    <div class="app-shell">
+      <nav class="app-nav" aria-label="Main">
+        <a
+          href="/"
+          class="app-nav__link{% if active_nav == 'todo' %} app-nav__link--active{% endif %}"
+        >Todo</a>
+        <a
+          href="/tags"
+          class="app-nav__link{% if active_nav == 'tags' %} app-nav__link--active{% endif %}"
+        >Tags</a>
+        {% if show_logout %}
+        <form method="post" action="{{ url_for('logout') }}" class="app-nav__logout">
+          <button type="submit" class="app-nav__link app-nav__link--button">Log out</button>
+        </form>
+        {% endif %}
+      </nav>
+      <main class="app-content">
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+  </body>
+</html>

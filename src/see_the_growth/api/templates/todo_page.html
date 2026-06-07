@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}See the Growth — Todos{% endblock %}
+
+{% block content %}
+<div class="todo-page">
+  <h1>Todo List</h1>
+
+  {% if active_filter.is_active %}
+  <p class="todo-filter">
+    Showing todos tagged {{ active_filter.display_label }}
+    —
+    <a href="/" class="todo-filter__clear">Show all</a>
+  </p>
+  {% endif %}
+
+  {% if error_message %}
+  <p role="alert" class="alert alert--error">{{ error_message }}</p>
+  {% endif %}
+
+  <form method="get" action="/" class="todo-tag-filter">
+    <fieldset class="todo-tag-filter__tags">
+      <legend>Filter by tags</legend>
+      {% if tag_summaries %}
+      {% for tag in tag_summaries %}
+      <label class="todo-tag-filter__option" for="filter-tag-{{ tag.name }}">
+        <input
+          type="checkbox"
+          id="filter-tag-{{ tag.name }}"
+          name="tag"
+          value="{{ tag.name }}"
+          {% if tag.name in active_filter.tag_names %}checked{% endif %}
+        >
+        {{ tag.name }}
+      </label>
+      {% endfor %}
+      {% else %}
+      <p class="todo-tag-filter__empty">No tags yet</p>
+      {% endif %}
+    </fieldset>
+    <div class="todo-tag-filter__match">
+      <span class="todo-tag-filter__match-label">Match</span>
+      <label class="todo-tag-filter__match-option">
+        <input
+          type="radio"
+          name="tag_match"
+          value="any"
+          {% if active_filter.tag_match.value == 'any' %}checked{% endif %}
+        >
+        Any tag
+      </label>
+      <label class="todo-tag-filter__match-option">
+        <input
+          type="radio"
+          name="tag_match"
+          value="all"
+          {% if active_filter.tag_match.value == 'all' %}checked{% endif %}
+        >
+        All tags
+      </label>
+    </div>
+    <button type="submit" class="btn btn--secondary">Apply filter</button>
+  </form>
+
+  <form method="post" action="/todos{% if active_filter_query %}?{{ active_filter_query }}{% endif %}" class="todo-form">
+    <label for="title">Title</label>
+    <input id="title" name="title" type="text">
+    <label for="tags">Tags</label>
+    <input id="tags" name="tags" type="text" placeholder="Optional, comma-separated">
+    <button type="submit" class="btn btn--primary">Add todo</button>
+  </form>
+
+  {% if not todos %}
+  <p class="todo-empty">No todos yet</p>
+  {% endif %}
+
+  <ul class="todo-list">
+    {% for todo, tags in todo_rows %}
+    <li class="todo-item{% if todo.completed %} todo-item--completed{% endif %}">
+      <div class="todo-item__body">
+        <span class="todo-item__title">{{ todo.title }}</span>
+        {% if tags %}
+        <ul class="todo-item__tags">
+          {% for tag in tags %}
+          <li class="todo-item__tag">
+            <a href="/?tag={{ tag | urlencode }}">{{ tag }}</a>
+          </li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+      </div>
+      {% if not todo.completed %}
+      <form method="post" action="/todos/{{ todo.id }}/complete{% if active_filter_query %}?{{ active_filter_query }}{% endif %}" class="todo-complete-form">
+        <button type="submit" class="btn btn--secondary">Complete</button>
+      </form>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+
+  {% if todos | selectattr('completed') | list %}
+  <form method="post" action="/todos/flush-completed{% if active_filter_query %}?{{ active_filter_query }}{% endif %}" class="todo-flush-form">
+    <button type="submit" class="btn btn--secondary">Flush completed</button>
+  </form>
+  {% endif %}
+</div>
+{% endblock %}
