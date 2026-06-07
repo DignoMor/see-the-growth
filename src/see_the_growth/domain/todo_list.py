@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from uuid import uuid4
 
 from .tag import TagSummary, normalize_tag_name
+from .todo_filter import TodoFilter
 from .title import normalize_title
 
 
@@ -25,18 +26,34 @@ class TodoList:
         self._todo_tags: dict[str, set[str]] = {}
         self._all_tags: set[str] = {"task"}
 
-    def create_todo(self, title: str) -> TodoItem:
+    def create_todo(
+        self, title: str, tag_names: list[str] | None = None
+    ) -> TodoItem:
         normalized_title = normalize_title(title)
         if not normalized_title:
             raise TodoDomainError("Todo title must not be empty.")
 
         todo = TodoItem(id=str(uuid4()), title=normalized_title, completed=False)
         self._todos.append(todo)
-        self._todo_tags[todo.id] = {"task"}
+        tags = {"task"}
+        if tag_names:
+            for name in tag_names:
+                tags.add(name)
+                self._all_tags.add(name)
+        self._todo_tags[todo.id] = tags
         return todo
 
-    def list_todos(self) -> list[TodoItem]:
-        return [todo for todo in self._todos if todo.id not in self._flushed_ids]
+    def list_todos(self, todo_filter: TodoFilter | None = None) -> list[TodoItem]:
+        if todo_filter is None:
+            todo_filter = TodoFilter.none()
+        visible = [todo for todo in self._todos if todo.id not in self._flushed_ids]
+        if not todo_filter.is_active:
+            return visible
+        return [
+            todo
+            for todo in visible
+            if todo_filter.matches(self._todo_tags.get(todo.id, set()))
+        ]
 
     def complete_todo(self, todo_id: str) -> None:
         for todo in self._todos:

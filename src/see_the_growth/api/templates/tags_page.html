@@ -12,7 +12,7 @@
   <ul class="tags-list">
     {% for tag in tag_summaries %}
     <li class="tags-item">
-      <span class="tags-item__name">{{ tag.name }}</span>
+      <a href="/?tag={{ tag.name | urlencode }}" class="tags-item__name">{{ tag.name }}</a>
       <span class="tags-item__unfinished-count">{{ tag.unfinished_count }}</span>
     </li>
     {% endfor %}

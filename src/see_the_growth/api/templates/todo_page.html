@@ -6,13 +6,23 @@
 <div class="todo-page">
   <h1>Todo List</h1>
 
+  {% if active_filter.is_active %}
+  <p class="todo-filter">
+    Showing todos tagged {{ active_filter.display_label }}
+    —
+    <a href="/" class="todo-filter__clear">Show all</a>
+  </p>
+  {% endif %}
+
   {% if error_message %}
   <p role="alert" class="alert alert--error">{{ error_message }}</p>
   {% endif %}
 
-  <form method="post" action="/todos" class="todo-form">
+  <form method="post" action="/todos{% if active_filter_query %}?{{ active_filter_query }}{% endif %}" class="todo-form">
     <label for="title">Title</label>
     <input id="title" name="title" type="text">
+    <label for="tags">Tags</label>
+    <input id="tags" name="tags" type="text" placeholder="Optional, comma-separated">
     <button type="submit" class="btn btn--primary">Add todo</button>
   </form>
 
@@ -21,11 +31,22 @@
   {% endif %}
 
   <ul class="todo-list">
-    {% for todo in todos %}
+    {% for todo, tags in todo_rows %}
     <li class="todo-item{% if todo.completed %} todo-item--completed{% endif %}">
-      <span class="todo-item__title">{{ todo.title }}</span>
+      <div class="todo-item__body">
+        <span class="todo-item__title">{{ todo.title }}</span>
+        {% if tags %}
+        <ul class="todo-item__tags">
+          {% for tag in tags %}
+          <li class="todo-item__tag">
+            <a href="/?tag={{ tag | urlencode }}">{{ tag }}</a>
+          </li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+      </div>
       {% if not todo.completed %}
-      <form method="post" action="/todos/{{ todo.id }}/complete" class="todo-complete-form">
+      <form method="post" action="/todos/{{ todo.id }}/complete{% if active_filter_query %}?{{ active_filter_query }}{% endif %}" class="todo-complete-form">
         <button type="submit" class="btn btn--secondary">Complete</button>
       </form>
       {% endif %}
@@ -34,7 +55,7 @@
   </ul>
 
   {% if todos | selectattr('completed') | list %}
-  <form method="post" action="/todos/flush-completed" class="todo-flush-form">
+  <form method="post" action="/todos/flush-completed{% if active_filter_query %}?{{ active_filter_query }}{% endif %}" class="todo-flush-form">
     <button type="submit" class="btn btn--secondary">Flush completed</button>
   </form>
   {% endif %}

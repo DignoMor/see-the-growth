@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from uuid import uuid4
 
 from see_the_growth.domain.tag import TagSummary
+from see_the_growth.domain.todo_filter import TagMatchMode, TodoFilter
 from see_the_growth.domain.todo_list import TodoItem
 
 from .bootstrap import bootstrap_database
@@ -27,7 +28,9 @@ class SqliteTodoRepository:
             self._local.connection = connection
         return connection
 
-    def add_todo(self, todo: TodoItem) -> None:
+    def add_todo(
+        self, todo: TodoItem, extra_tag_names: list[str] | None = None
+    ) -> None:
         created_at = datetime.now(timezone.utc).isoformat()
         connection = self._connection
         try:
@@ -39,32 +42,95 @@ class SqliteTodoRepository:
                 """,
                 (todo.id, todo.title, int(todo.completed), created_at),
             )
-            task_tag_id = self._get_or_create_tag_id(connection, "task")
-            connection.execute(
-                """
-                INSERT OR IGNORE INTO todo_tags (todo_id, tag_id)
-                VALUES (?, ?)
-                """,
-                (todo.id, task_tag_id),
-            )
+            tag_names = ["task"]
+            if extra_tag_names:
+                for tag_name in extra_tag_names:
+                    if tag_name != "task":
+                        tag_names.append(tag_name)
+            for tag_name in tag_names:
+                tag_id = self._get_or_create_tag_id(connection, tag_name)
+                connection.execute(
+                    """
+                    INSERT OR IGNORE INTO todo_tags (todo_id, tag_id)
+                    VALUES (?, ?)
+                    """,
+                    (todo.id, tag_id),
+                )
             connection.commit()
         except Exception:
             connection.rollback()
             raise
 
-    def list_todos(self) -> list[TodoItem]:
-        rows = self._connection.execute(
-            """
-            SELECT id, title, completed
-            FROM todos
-            WHERE flushed = 0
-            ORDER BY created_at ASC, id ASC
-            """
-        ).fetchall()
+    def list_todos(self, todo_filter: TodoFilter | None = None) -> list[TodoItem]:
+        if todo_filter is None or not todo_filter.is_active:
+            rows = self._connection.execute(
+                """
+                SELECT id, title, completed
+                FROM todos
+                WHERE flushed = 0
+                ORDER BY created_at ASC, id ASC
+                """
+            ).fetchall()
+        elif todo_filter.tag_match == TagMatchMode.ALL:
+            rows = self._list_todos_matching_all_tags(todo_filter.tag_names)
+        else:
+            rows = self._list_todos_matching_any_tag(todo_filter.tag_names)
         return [
             TodoItem(id=row[0], title=row[1], completed=bool(row[2]))
             for row in rows
         ]
+
+    def _list_todos_matching_any_tag(
+        self, tag_names: tuple[str, ...]
+    ) -> list[tuple[str, str, int]]:
+        placeholders = ", ".join("?" for _ in tag_names)
+        return self._connection.execute(
+            f"""
+            SELECT DISTINCT todos.id, todos.title, todos.completed
+            FROM todos
+            INNER JOIN todo_tags ON todo_tags.todo_id = todos.id
+            INNER JOIN tags ON tags.id = todo_tags.tag_id
+            WHERE todos.flushed = 0 AND tags.name IN ({placeholders})
+            ORDER BY todos.created_at ASC, todos.id ASC
+            """,
+            tag_names,
+        ).fetchall()
+
+    def _list_todos_matching_all_tags(
+        self, tag_names: tuple[str, ...]
+    ) -> list[tuple[str, str, int]]:
+        placeholders = ", ".join("?" for _ in tag_names)
+        return self._connection.execute(
+            f"""
+            SELECT todos.id, todos.title, todos.completed
+            FROM todos
+            WHERE todos.flushed = 0
+            AND todos.id IN (
+                SELECT todo_tags.todo_id
+                FROM todo_tags
+                INNER JOIN tags ON tags.id = todo_tags.tag_id
+                WHERE tags.name IN ({placeholders})
+                GROUP BY todo_tags.todo_id
+                HAVING COUNT(DISTINCT tags.name) = ?
+            )
+            ORDER BY todos.created_at ASC, todos.id ASC
+            """,
+            (*tag_names, len(tag_names)),
+        ).fetchall()
+
+    def tags_for_todo(self, todo_id: str) -> list[str]:
+        rows = self._connection.execute(
+            """
+            SELECT tags.name
+            FROM tags
+            INNER JOIN todo_tags ON todo_tags.tag_id = tags.id
+            INNER JOIN todos ON todos.id = todo_tags.todo_id
+            WHERE todo_tags.todo_id = ? AND todos.flushed = 0
+            ORDER BY tags.name ASC
+            """,
+            (str(todo_id),),
+        ).fetchall()
+        return [str(row[0]) for row in rows]
 
     def flush_completed(self) -> None:
         self._connection.execute(
